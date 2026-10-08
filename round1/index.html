@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TimeGuessr Cup · Round 1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root{
+  --bg:#eef2f4; --surface:#ffffff; --ink:#15212b; --muted:#5d6b76; --line:#d5dde2;
+  --accent:#1d6a86; --accent-ink:#ffffff; --gold:#b7861b; --guess:#c2552d; --real:#2f8a4a;
+  --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --body:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#0f161c; --surface:#17222b; --ink:#e6edf1; --muted:#93a3ae; --line:#2a3944;
+  --accent:#5fb3d1; --accent-ink:#0b1318; --gold:#e0b04a; --guess:#e07a50; --real:#5cc27a; color-scheme:dark}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--body)}
+.wrap{max-width:1100px;margin:0 auto;padding-inline:16px;padding-block:20px 40px;display:grid;gap:16px}
+.wrap > *{min-width:0}
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+h1{font:800 clamp(24px,5vw,34px)/1.05 var(--display);letter-spacing:-.02em;margin:0}
+.back{font-size:13px;color:var(--muted)}
+.back a{color:var(--accent)}
+.pill{font:500 13px var(--mono);color:var(--muted);display:flex;gap:14px}
+.pill b{color:var(--ink);font-weight:500}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
+h2{font:600 13px var(--body);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 10px}
+.game{display:grid;gap:16px;grid-template-columns:1fr}
+@media (min-width:900px){.game{grid-template-columns:1.1fr 1fr;align-items:start}}
+.photo{position:relative;border-radius:10px;overflow:hidden;background:#000;cursor:zoom-in}
+.photo img{display:block;width:100%;max-height:60vh;object-fit:contain;margin:0 auto}
+.photo .hint{position:absolute;right:8px;bottom:8px;font-size:12px;background:rgba(0,0,0,.55);color:#fff;padding:2px 8px;border-radius:99px}
+#map{height:340px;border-radius:10px;border:1px solid var(--line);z-index:0}
+@media (min-width:900px){#map{height:420px}}
+.controls{display:grid;gap:14px}
+.year{display:grid;gap:8px}
+.year-top{display:flex;align-items:baseline;justify-content:space-between}
+.year-top label{font-size:13px;color:var(--muted)}
+.year-val{font:800 34px/1 var(--display);color:var(--accent);font-variant-numeric:tabular-nums}
+.year-row{display:flex;align-items:center;gap:10px}
+.year-row input{flex:1;accent-color:var(--accent);min-width:0}
+.step{width:40px;height:40px;padding:0;font-size:20px;line-height:1;flex:none}
+button{font:600 15px var(--body);border-radius:8px;padding:12px 16px;cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink)}
+button.ghost{background:transparent;color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hintline{font-size:13px;color:var(--muted);margin:0}
+.reveal{display:grid;gap:12px}
+.reveal .caption{margin:0;font-weight:500}
+.reveal .facts{margin:0;color:var(--muted);font-size:14px}
+.breakdown{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.breakdown div{background:var(--bg);border-radius:8px;padding:10px 6px}
+.breakdown span{display:block;font-size:12px;color:var(--muted)}
+.breakdown b{font:800 22px/1.2 var(--display);font-variant-numeric:tabular-nums}
+.breakdown .tot b{color:var(--gold)}
+.intro{display:grid;gap:14px;max-width:620px}
+.intro p{margin:0}
+.intro ul{margin:0;padding-left:20px;color:var(--muted)}
+.summary{display:grid;gap:16px}
+.final{text-align:center;display:grid;gap:4px;padding:10px 0}
+.final .n{font:800 clamp(44px,10vw,64px)/1 var(--display);color:var(--gold);font-variant-numeric:tabular-nums}
+.final .of{color:var(--muted);font-family:var(--mono);font-size:14px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.card{background:var(--bg);border-radius:8px;overflow:hidden}
+.card img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;max-width:100%}
+.card div{padding:8px 10px;font-size:13px;color:var(--muted)}
+.card b{display:block;font:800 18px var(--display);color:var(--ink)}
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,.92);display:grid;place-items:center;z-index:1000;cursor:zoom-out;padding:12px}
+.lightbox img{max-width:100%;max-height:100%;object-fit:contain}
+.err{color:var(--guess)}
+.pin{width:18px;height:18px;border-radius:50%;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.5)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1 id="title">TimeGuessr Cup · Round 1</h1>
+      <div class="back"><a href="../">Back to the leaderboard</a></div>
+    </div>
+    <div class="pill" id="status" hidden><span>Photo <b id="roundNo">1</b>/<b id="roundTotal">5</b></span><span>Score <b id="runTotal">0</b></span></div>
+  </header>
+
+  <section class="panel intro" id="introView">
+    <h2>Special round</h2>
+    <p id="introText">Five photos. For each one, drop a pin where it was taken and pick the year.</p>
+    <ul>
+      <li>Up to 5,000 points for location and 5,000 for the year, per photo.</li>
+      <li>50,000 is a perfect game.</li>
+      <li>One attempt. Your result is saved on this device.</li>
+    </ul>
+    <div><button id="startBtn" disabled>Loading…</button></div>
+  </section>
+
+  <section class="game" id="gameView" hidden>
+    <div class="photo" id="photoBox" title="Tap to enlarge"><img id="photo" alt="Round photo"><span class="hint">Tap to enlarge</span></div>
+    <div class="controls">
+      <div id="map" aria-label="Map. Tap to place your guess."></div>
+      <div class="panel" id="guessPanel">
+        <div class="year">
+          <div class="year-top"><label for="yearInput">Year</label><span class="year-val" id="yearVal">2010</span></div>
+          <div class="year-row">
+            <button class="ghost step" id="yearDown" type="button" aria-label="One year earlier">−</button>
+            <input type="range" id="yearInput" min="1990" max="2026" step="1" value="2010">
+            <button class="ghost step" id="yearUp" type="button" aria-label="One year later">+</button>
+          </div>
+        </div>
+        <p class="hintline" id="pinHint">Tap the map to drop your pin.</p>
+        <button id="submitBtn" disabled style="width:100%">Submit guess</button>
+      </div>
+      <div class="panel reveal" id="revealPanel" hidden>
+        <p class="caption" id="caption"></p>
+        <p class="facts" id="facts"></p>
+        <div class="breakdown">
+          <div><span>Location</span><b id="locScore">0</b></div>
+          <div><span>Year</span><b id="yearScore">0</b></div>
+          <div class="tot"><span>This photo</span><b id="roundScore">0</b></div>
+        </div>
+        <button id="nextBtn" style="width:100%">Next photo</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel summary" id="summaryView" hidden>
+    <h2>Round complete</h2>
+    <div class="final"><span class="n" id="finalScore">0</span><span class="of">/ 50,000</span></div>
+    <p class="hintline" style="text-align:center">Screenshot this and send it to Jack.</p>
+    <div class="cards" id="cards"></div>
+  </section>
+</div>
+<div class="lightbox" id="lightbox" hidden><img id="lightImg" alt=""></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const fmt = n => Math.round(n).toLocaleString("en-IE");
+const STORE_KEY = "tgc-round1-result";
+let game, map, tiles, guessMarker, revealLayer, round = 0, guess = null, results = [];
+
+// Answers are stored lightly encoded so they aren't readable at a glance.
+const decode = s => JSON.parse(decodeURIComponent(escape(atob(s.split("").reverse().join("")))));
+
+function haversineKm(a, b){
+  const R = 6371, toRad = d => d * Math.PI / 180;
+  const dLat = toRad(b.lat - a.lat), dLon = toRad(b.lon - a.lon);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+// Same curves as the football TimeGuesser
+const locPoints = km => 5000 * Math.exp(-km / game.distScaleKm);
+const yearPoints = diff => 5000 * Math.exp(-diff / game.yearScale);
+
+const save = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify(results)); } catch(e){} };
+const load = () => { try { return JSON.parse(localStorage.getItem(STORE_KEY)) || null; } catch(e){ return null; } };
+
+function show(view){
+  ["introView","gameView","summaryView"].forEach(v => $(v).hidden = v !== view);
+  $("status").hidden = view !== "gameView";
+}
+
+function pinIcon(color){ return L.divIcon({ className: "", html: `<div class="pin" style="background:${color}"></div>`, iconSize: [18,18], iconAnchor: [9,9] }); }
+const cssVar = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+function initMap(){
+  map = L.map("map", { worldCopyJump: true, zoomControl: true }).setView(game.mapCenter, game.mapZoom);
+  const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+  tiles = L.tileLayer(`https://{s}.basemaps.cartocdn.com/${dark ? "dark_all" : "rastertiles/voyager"}/{z}/{x}/{y}{r}.png`, {
+    maxZoom: 19, subdomains: "abcd",
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
+  }).addTo(map);
+  revealLayer = L.layerGroup().addTo(map);
+  map.on("click", e => {
+    if (!$("revealPanel").hidden) return;
+    guess = { lat: e.latlng.lat, lon: e.latlng.wrap().lng };
+    if (guessMarker) guessMarker.setLatLng(e.latlng);
+    else guessMarker = L.marker(e.latlng, { icon: pinIcon(cssVar("--guess")) }).addTo(map);
+    $("submitBtn").disabled = false;
+    $("pinHint").textContent = "Pin placed. Tap again to move it.";
+  });
+}
+
+function setYear(y){
+  y = Math.max(game.yearMin, Math.min(game.yearMax, y));
+  $("yearInput").value = y; $("yearVal").textContent = y;
+}
+
+function startRound(){
+  const r = game.rounds[round];
+  guess = null;
+  if (guessMarker){ map.removeLayer(guessMarker); guessMarker = null; }
+  revealLayer.clearLayers();
+  map.setView(game.mapCenter, game.mapZoom);
+  $("photo").src = r.image;
+  setYear(game.yearStart);
+  $("roundNo").textContent = round + 1;
+  $("runTotal").textContent = fmt(results.reduce((s, x) => s + x.score, 0));
+  $("submitBtn").disabled = true;
+  $("pinHint").textContent = "Tap the map to drop your pin.";
+  $("guessPanel").hidden = false; $("revealPanel").hidden = true;
+  $("nextBtn").textContent = round === game.rounds.length - 1 ? "See final score" : "Next photo";
+  setTimeout(() => map.invalidateSize(), 50);
+}
+
+function submit(){
+  if (!guess) return;
+  const r = game.rounds[round], ans = decode(r.a);
+  const yearGuess = Number($("yearInput").value);
+  const km = haversineKm(guess, ans);
+  const diff = Math.abs(yearGuess - ans.year);
+  const lp = Math.round(locPoints(km)), yp = Math.round(yearPoints(diff)), score = lp + yp;
+  results.push({ image: r.image, score, lp, yp, km: Math.round(km), diff });
+  save();
+
+  const real = L.latLng(ans.lat, ans.lon);
+  L.marker(real, { icon: pinIcon(cssVar("--real")) }).addTo(revealLayer);
+  L.polyline([guessMarker.getLatLng(), real], { color: cssVar("--gold"), weight: 3, dashArray: "6 8" }).addTo(revealLayer);
+  map.fitBounds(L.latLngBounds([guessMarker.getLatLng(), real]).pad(0.3), { maxZoom: 14 });
+
+  $("caption").textContent = ans.caption || "";
+  $("caption").hidden = !ans.caption;
+  const kmText = km < 1 ? `${Math.round(km * 1000)} m` : `${fmt(km)} km`;
+  $("facts").textContent = `It was ${ans.year}. You guessed ${yearGuess} (${diff === 0 ? "spot on" : diff + (diff === 1 ? " year" : " years") + " off"}) and were ${kmText} away.`;
+  $("locScore").textContent = fmt(lp); $("yearScore").textContent = fmt(yp); $("roundScore").textContent = fmt(score);
+  $("runTotal").textContent = fmt(results.reduce((s, x) => s + x.score, 0));
+  $("guessPanel").hidden = true; $("revealPanel").hidden = false;
+}
+
+function next(){
+  round++;
+  if (round >= game.rounds.length) return showSummary();
+  startRound();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function showSummary(){
+  const total = results.reduce((s, x) => s + x.score, 0);
+  $("finalScore").textContent = fmt(total);
+  $("cards").innerHTML = results.map((r, i) => `<div class="card"><img src="${r.image}" alt="Photo ${i + 1}"><div><b>${fmt(r.score)}</b>${fmt(r.km)} km · ${r.diff} yr off</div></div>`).join("");
+  show("summaryView");
+}
+
+$("startBtn").addEventListener("click", () => { show("gameView"); if (!map) initMap(); startRound(); });
+$("submitBtn").addEventListener("click", submit);
+$("nextBtn").addEventListener("click", next);
+$("yearInput").addEventListener("input", e => setYear(Number(e.target.value)));
+$("yearDown").addEventListener("click", () => setYear(Number($("yearInput").value) - 1));
+$("yearUp").addEventListener("click", () => setYear(Number($("yearInput").value) + 1));
+$("photoBox").addEventListener("click", () => { $("lightImg").src = $("photo").src; $("lightbox").hidden = false; });
+$("lightbox").addEventListener("click", () => $("lightbox").hidden = true);
+document.addEventListener("keydown", e => { if (e.key === "Escape") $("lightbox").hidden = true; });
+
+fetch("game.json?v=" + Date.now()).then(r => r.json()).then(g => {
+  game = Object.assign({ yearMin: 1990, yearMax: 2026, yearStart: 2010, distScaleKm: 1500, yearScale: 3, mapCenter: [53.4, -7.9], mapZoom: 6 }, g);
+  if (game.title) { $("title").textContent = game.title; document.title = game.title; }
+  if (game.intro) $("introText").textContent = game.intro;
+  $("roundTotal").textContent = game.rounds.length;
+  $("yearInput").min = game.yearMin; $("yearInput").max = game.yearMax;
+  game.rounds.forEach(r => { const im = new Image(); im.src = r.image; }); // preload
+  const prev = load();
+  if (prev && prev.length >= game.rounds.length && !new URLSearchParams(location.search).has("replay")) { results = prev; return showSummary(); }
+  if (prev && prev.length) { results = prev; round = prev.length; }
+  $("startBtn").disabled = false;
+  $("startBtn").textContent = round ? `Resume at photo ${round + 1}` : "Start";
+}).catch(() => { $("introText").innerHTML = '<span class="err">Couldn\'t load the round. Refresh to try again.</span>'; });
+</script>
+</body>
+</html>
