@@ -194,10 +194,9 @@ const cssVar = v => getComputedStyle(document.documentElement).getPropertyValue(
 
 function initMap(){
   map = L.map("map", { worldCopyJump: true, zoomControl: true }).setView(game.mapCenter, game.mapZoom);
-  const dark = matchMedia("(prefers-color-scheme: dark)").matches;
-  tiles = L.tileLayer(`https://{s}.basemaps.cartocdn.com/${dark ? "dark_all" : "rastertiles/voyager"}/{z}/{x}/{y}{r}.png`, {
-    maxZoom: 19, subdomains: "abcd",
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
+  tiles = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   }).addTo(map);
   revealLayer = L.layerGroup().addTo(map);
   map.on("click", e => {
