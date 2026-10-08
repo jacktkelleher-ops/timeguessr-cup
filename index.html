@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TimeGuessr Cup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+:root{
+  --bg:#eef2f4; --surface:#ffffff; --ink:#15212b; --muted:#5d6b76; --line:#d5dde2;
+  --accent:#1d6a86; --gold:#b7861b;
+  --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --body:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#0f161c; --surface:#17222b; --ink:#e6edf1; --muted:#93a3ae; --line:#2a3944;
+  --accent:#5fb3d1; --gold:#e0b04a; color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--body)}
+.wrap{max-width:880px;margin:0 auto;padding-inline:16px;padding-block:28px 48px;display:grid;gap:22px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+h1{font:800 clamp(30px,6vw,44px)/1 var(--display);letter-spacing:-.02em;margin:0}
+.sub{color:var(--muted);margin:6px 0 0}
+.count{font:500 13px var(--mono);color:var(--muted);text-align:right}
+.count b{display:block;font:800 28px/1 var(--display);color:var(--accent)}
+h2{font:600 13px var(--body);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 10px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{padding:9px 6px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-weight:500;color:var(--muted);font-size:13px}
+td.num,th.num{text-align:right;font-family:var(--mono)}
+tr:last-child td{border-bottom:0}
+.who{display:inline-flex;align-items:center;gap:10px}
+.av{width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid;flex:none}
+.av-init{display:inline-grid;place-items:center;font:600 12px var(--body);background:var(--bg);color:var(--ink)}
+.pos{font:800 18px var(--display);width:2.2em}
+.lead .pos{color:var(--gold)}
+.chart-box{position:relative;height:280px}
+.empty{color:var(--muted);padding:18px 0;text-align:center}
+.updated{font-size:13px;color:var(--muted);text-align:center;margin:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>TimeGuessr Cup</h1>
+      <p class="sub">One game every Wednesday, 7 Oct to 16 Dec. Max 50,000 per game.</p>
+    </div>
+    <div class="count" id="weekCount"><b>–</b>of 11 weeks played</div>
+  </header>
+  <section class="panel">
+    <h2>Standings</h2>
+    <div id="standings"><p class="empty">Loading scores…</p></div>
+  </section>
+  <section class="panel">
+    <h2>Cumulative total</h2>
+    <div class="chart-box"><canvas id="cumChart" aria-label="Cumulative total per player"></canvas></div>
+  </section>
+  <section class="panel">
+    <h2>Weekly scores</h2>
+    <div class="chart-box"><canvas id="weekChart" aria-label="Weekly score per player"></canvas></div>
+  </section>
+  <p class="updated" id="updated"></p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const MAX = 50000;
+const WEEKS = ["2026-10-07","2026-10-14","2026-10-21","2026-10-28","2026-11-04","2026-11-11","2026-11-18","2026-11-25","2026-12-02","2026-12-09","2026-12-16"];
+const PALETTE = ["#1d6a86","#c2552d","#4c8a3a","#8a4fb0","#b7861b","#2f8f8a","#a13d63","#5b6770","#d07a1f","#3b5bb5","#7a9a2a","#c03a3a"];
+let data = { players: [], weeks: {}, avatars: {}, updated: null };
+let cumChart, weekChart;
+
+const $ = id => document.getElementById(id);
+const fmt = n => n.toLocaleString("en-IE");
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const colorFor = p => PALETTE[Math.max(0, data.players.indexOf(p)) % PALETTE.length];
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const initials = p => p.split(/\s+/).map(w => w[0]).join("").slice(0, 2).toUpperCase();
+const avatar = p => data.avatars?.[p]
+  ? `<img class="av" src="${esc(data.avatars[p])}" alt="" style="border-color:${colorFor(p)}">`
+  : `<span class="av av-init" style="border-color:${colorFor(p)}">${esc(initials(p))}</span>`;
+
+function series(){
+  const played = WEEKS.filter(w => data.weeks[w] && Object.keys(data.weeks[w]).length);
+  const out = data.players.map(p => {
+    let run = 0;
+    const weekly = played.map(w => typeof data.weeks[w][p] === "number" ? data.weeks[w][p] : null);
+    const cum = weekly.map(v => (run += v || 0));
+    const got = weekly.filter(v => v !== null);
+    const wins = played.filter(w => { const v = Object.values(data.weeks[w]); return v.length > 1 && data.weeks[w][p] === Math.max(...v); }).length;
+    return { p, weekly, cum, total: run, avg: got.length ? Math.round(run / got.length) : 0, best: got.length ? Math.max(...got) : 0, wins };
+  });
+  return { played, labels: played.map(w => "Wk " + (WEEKS.indexOf(w) + 1)), out };
+}
+
+function renderStandings(s){
+  $("weekCount").innerHTML = `<b>${s.played.length}</b>of 11 weeks played`;
+  $("updated").textContent = data.updated ? "Last updated " + new Date(data.updated).toLocaleString("en-IE", {weekday:"short", day:"numeric", month:"short", hour:"2-digit", minute:"2-digit"}) : "";
+  if (!s.out.length){ $("standings").innerHTML = '<p class="empty">No players yet.</p>'; return; }
+  const rows = [...s.out].sort((a, b) => b.total - a.total || a.p.localeCompare(b.p));
+  const lead = rows[0].total;
+  $("standings").innerHTML = `<div style="overflow-x:auto"><table>
+    <thead><tr><th></th><th>Player</th><th class="num">Total</th><th class="num">Behind</th><th class="num">Avg</th><th class="num">Best</th><th class="num">Week wins</th></tr></thead>
+    <tbody>${rows.map((r, i) => `<tr class="${i === 0 && lead > 0 ? "lead" : ""}">
+      <td class="pos">${i + 1}</td>
+      <td><span class="who">${avatar(r.p)}${esc(r.p)}</span></td>
+      <td class="num">${fmt(r.total)}</td>
+      <td class="num">${lead === r.total ? "–" : "−" + fmt(lead - r.total)}</td>
+      <td class="num">${fmt(r.avg)}</td>
+      <td class="num">${fmt(r.best)}</td>
+      <td class="num">${r.wins}</td></tr>`).join("")}</tbody></table></div>`;
+}
+
+function chartOpts(yMax){
+  const ink = css("--muted"), grid = css("--line");
+  return { responsive: true, maintainAspectRatio: false, animation: false,
+    interaction: { mode: "index", intersect: false },
+    plugins: { legend: { position: "bottom", labels: { color: ink, boxWidth: 10, boxHeight: 10, usePointStyle: true } },
+      tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y == null ? "—" : fmt(c.parsed.y)}` } } },
+    scales: { x: { ticks: { color: ink, maxRotation: 0 }, grid: { display: false } },
+      y: { beginAtZero: true, max: yMax, ticks: { color: ink, callback: v => v >= 1000 ? (v / 1000) + "k" : v }, grid: { color: grid } } } };
+}
+
+function renderCharts(s){
+  if (!window.Chart) return;
+  const ds = key => s.out.map(r => ({ label: r.p, data: r[key], borderColor: colorFor(r.p), backgroundColor: colorFor(r.p), tension: .25, pointRadius: 3, borderWidth: 2, spanGaps: false }));
+  if (cumChart) cumChart.destroy();
+  if (weekChart) weekChart.destroy();
+  cumChart = new Chart($("cumChart"), { type: "line", data: { labels: s.labels, datasets: ds("cum") }, options: chartOpts() });
+  weekChart = new Chart($("weekChart"), { type: "line", data: { labels: s.labels, datasets: ds("weekly") }, options: chartOpts(MAX) });
+}
+
+function render(){ const s = series(); renderStandings(s); renderCharts(s); }
+
+matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", render);
+fetch("scores.json?v=" + Date.now())
+  .then(r => r.json())
+  .then(d => { data = { players: d.players || [], weeks: d.weeks || {}, avatars: d.avatars || {}, updated: d.updated || null }; render(); })
+  .catch(() => { $("standings").innerHTML = '<p class="empty">Couldn\'t load scores. Refresh to try again.</p>'; });
+</script>
+</body>
+</html>
