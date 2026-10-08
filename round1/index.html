@@ -153,9 +153,33 @@ function haversineKm(a, b){
   const h = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLon / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(h));
 }
-// Same curves as the football TimeGuesser
-const locPoints = km => 5000 * Math.exp(-km / game.distScaleKm);
-const yearPoints = diff => 5000 * Math.exp(-diff / game.yearScale);
+// TimeGuessr scoring, as reverse-engineered from real game results
+// (github.com/sjlarimer/TimeGuessr). Distance bands are in metres.
+function locPoints(km){
+  const x = km * 1000;
+  if (x <= 50) return 5000;
+  if (x <= 1000) return 5000 - x * 0.02;
+  if (x <= 5000) return 4980 - x * 0.016;
+  if (x <= 100000) return 4900 - x * 0.004;
+  if (x <= 1000000) return 4500 - x * 0.001;
+  if (x <= 2000000) return 3500 - x * 0.0005;
+  if (x <= 3000000) return 2500 - x * 0.0003333;
+  if (x <= 6000000) return 1500 - x * 0.0002;
+  return 12;
+}
+function yearPoints(diff){
+  if (diff === 0) return 5000;
+  if (diff === 1) return 4950;
+  if (diff === 2) return 4800;
+  if (diff === 3) return 4600;
+  if (diff === 4) return 4300;
+  if (diff === 5) return 3900;
+  if (diff <= 7) return 3400;
+  if (diff <= 10) return 2500;
+  if (diff <= 15) return 2000;
+  if (diff <= 20) return 1000;
+  return 0;
+}
 
 const save = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify(results)); } catch(e){} };
 const load = () => { try { return JSON.parse(localStorage.getItem(STORE_KEY)) || null; } catch(e){ return null; } };
@@ -257,7 +281,7 @@ $("lightbox").addEventListener("click", () => $("lightbox").hidden = true);
 document.addEventListener("keydown", e => { if (e.key === "Escape") $("lightbox").hidden = true; });
 
 fetch("game.json?v=" + Date.now()).then(r => r.json()).then(g => {
-  game = Object.assign({ yearMin: 1990, yearMax: 2026, yearStart: 2010, distScaleKm: 1500, yearScale: 3, mapCenter: [53.4, -7.9], mapZoom: 6 }, g);
+  game = Object.assign({ yearMin: 1990, yearMax: 2026, yearStart: 2010, mapCenter: [53.4, -7.9], mapZoom: 6 }, g);
   if (game.title) { $("title").textContent = game.title; document.title = game.title; }
   if (game.intro) $("introText").textContent = game.intro;
   $("roundTotal").textContent = game.rounds.length;
