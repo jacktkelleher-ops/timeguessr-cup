@@ -50,9 +50,9 @@ tr:last-child td{border-bottom:0}
   <header>
     <div>
       <h1>TimeGuessr Cup</h1>
-      <p class="sub">One game every Wednesday, 7 Oct to 16 Dec. Max 50,000 per game.</p>
+      <p class="sub">One game every Wednesday, 14 Oct to 16 Dec. Max 50,000 per game.</p>
     </div>
-    <div class="count" id="weekCount"><b>–</b>of 11 weeks played</div>
+    <div class="count" id="weekCount"><b>–</b>of 10 weeks played</div>
   </header>
   <p class="sample" id="sample" hidden>Test data: these are dummy scores, not real results.</p>
   <section class="panel">
@@ -73,7 +73,7 @@ tr:last-child td{border-bottom:0}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
 const MAX = 50000;
-const WEEKS = ["2026-10-07","2026-10-14","2026-10-21","2026-10-28","2026-11-04","2026-11-11","2026-11-18","2026-11-25","2026-12-02","2026-12-09","2026-12-16"];
+const WEEKS = ["2026-10-14","2026-10-21","2026-10-28","2026-11-04","2026-11-11","2026-11-18","2026-11-25","2026-12-02","2026-12-09","2026-12-16"];
 const PALETTE = ["#1d6a86","#c2552d","#4c8a3a","#8a4fb0","#b7861b","#2f8f8a","#a13d63","#5b6770","#d07a1f","#3b5bb5","#7a9a2a","#c03a3a"];
 let data = { players: [], weeks: {}, avatars: {}, updated: null };
 let cumChart, weekChart;
@@ -103,7 +103,7 @@ function series(){
 }
 
 function renderStandings(s){
-  $("weekCount").innerHTML = `<b>${s.played.length}</b>of 11 weeks played`;
+  $("weekCount").innerHTML = `<b>${s.played.length}</b>of ${WEEKS.length} weeks played`;
   $("updated").textContent = data.updated ? "Last updated " + new Date(data.updated).toLocaleString("en-IE", {weekday:"short", day:"numeric", month:"short", hour:"2-digit", minute:"2-digit"}) : "";
   if (!s.out.length){ $("standings").innerHTML = '<p class="empty">No players yet.</p>'; return; }
   const rows = [...s.out].sort((a, b) => b.total - a.total || a.p.localeCompare(b.p));
