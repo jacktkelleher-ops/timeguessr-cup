@@ -65,7 +65,7 @@ tr:last-child td{border-bottom:0}
   </section>
   <section class="panel">
     <h2>Weekly scores</h2>
-    <div class="chart-box"><canvas id="weekChart" aria-label="Weekly score per player"></canvas></div>
+    <div class="chart-box" style="height:400px"><canvas id="weekChart" aria-label="Weekly score per player"></canvas></div>
   </section>
   <p class="updated" id="updated"></p>
 </div>
@@ -139,7 +139,9 @@ function renderCharts(s){
   cumOpts.scales.y.suggestedMax = MAX;
   cumOpts.layout = { padding: { top: R + 2, bottom: R, right: 2 * R + 14 } };
   cumChart = new Chart($("cumChart"), { type: "line", data: { labels: s.labels, datasets: ds("cum").map(d => ({ ...d, pointRadius: 0, pointHoverRadius: 4 })) }, options: cumOpts, plugins: [endIcons] });
-  weekChart = new Chart($("weekChart"), { type: "line", data: { labels: s.labels, datasets: ds("weekly") }, options: chartOpts(MAX) });
+  const weekOpts = chartOpts(MAX);
+  weekOpts.layout = { padding: { top: R + 2, bottom: R, right: 2 * R + 14 } };
+  weekChart = new Chart($("weekChart"), { type: "line", data: { labels: s.labels, datasets: ds("weekly") }, options: weekOpts, plugins: [endIcons] });
 }
 
 
@@ -147,7 +149,7 @@ const imgs = {};
 function loadImages(){
   Object.entries(data.avatars || {}).forEach(([p, src]) => {
     const im = new Image();
-    im.onload = () => cumChart && cumChart.draw();
+    im.onload = () => { cumChart && cumChart.draw(); weekChart && weekChart.draw(); };
     im.src = src;
     imgs[p] = im;
   });
