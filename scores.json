@@ -14,5 +14,19 @@
     "Luke Merriman",
     "Paul Tobin"
   ],
+  "avatars": {
+    "Aaron Daly": "avatars/Aaron_Daly.jpg",
+    "Alan Mccarthy": "avatars/Alan_Mccarthy.jpg",
+    "Conor": "avatars/Conor.jpg",
+    "Cormac": "avatars/Cormac.jpg",
+    "Darragh O'Connor": "avatars/Darragh_OConnor.jpg",
+    "David Aherne": "avatars/David_Aherne.jpg",
+    "Daniel O Sullivan": "avatars/Daniel_O_Sullivan.jpg",
+    "Jack Carrigy": "avatars/Jack_Carrigy.jpg",
+    "Jack Keane": "avatars/Jack_Keane.jpg",
+    "Jack Kelleher": "avatars/Jack_Kelleher.jpg",
+    "Luke Merriman": "avatars/Luke_Merriman.jpg",
+    "Paul Tobin": "avatars/Paul_Tobin.jpg"
+  },
   "weeks": {}
 }
