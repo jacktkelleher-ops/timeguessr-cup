@@ -1,5 +1,6 @@
 {
-  "updated": null,
+  "sample": true,
+  "updated": "2026-10-08T14:10:00+01:00",
   "players": [
     "Aaron Daly",
     "Alan Mccarthy",
@@ -28,5 +29,20 @@
     "Luke Merriman": "avatars/Luke_Merriman.jpg",
     "Paul Tobin": "avatars/Paul_Tobin.jpg"
   },
-  "weeks": {}
+  "weeks": {
+    "2026-10-07": {
+      "Aaron Daly": 35260,
+      "Alan Mccarthy": 28170,
+      "Conor": 38170,
+      "Cormac": 23970,
+      "Darragh O'Connor": 24960,
+      "David Aherne": 43940,
+      "Daniel O Sullivan": 25850,
+      "Jack Carrigy": 36970,
+      "Jack Keane": 45870,
+      "Jack Kelleher": 24370,
+      "Luke Merriman": 42780,
+      "Paul Tobin": 30790
+    }
+  }
 }

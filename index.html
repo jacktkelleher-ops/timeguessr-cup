@@ -20,6 +20,8 @@
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--body)}
 .wrap{max-width:880px;margin:0 auto;padding-inline:16px;padding-block:28px 48px;display:grid;gap:22px}
+.wrap > *{min-width:0}
+.panel{overflow:hidden}
 header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
 h1{font:800 clamp(30px,6vw,44px)/1 var(--display);letter-spacing:-.02em;margin:0}
 .sub{color:var(--muted);margin:6px 0 0}
@@ -39,6 +41,7 @@ tr:last-child td{border-bottom:0}
 .lead .pos{color:var(--gold)}
 .chart-box{position:relative;height:280px}
 .empty{color:var(--muted);padding:18px 0;text-align:center}
+.sample{font-size:13px;background:var(--surface);border:1px dashed var(--gold);color:var(--ink);border-radius:8px;padding:8px 12px;margin:0}
 .updated{font-size:13px;color:var(--muted);text-align:center;margin:0}
 </style>
 </head>
@@ -51,6 +54,7 @@ tr:last-child td{border-bottom:0}
     </div>
     <div class="count" id="weekCount"><b>–</b>of 11 weeks played</div>
   </header>
+  <p class="sample" id="sample" hidden>Test data: these are dummy scores, not real results.</p>
   <section class="panel">
     <h2>Standings</h2>
     <div id="standings"><p class="empty">Loading scores…</p></div>
@@ -88,13 +92,14 @@ function series(){
   const played = WEEKS.filter(w => data.weeks[w] && Object.keys(data.weeks[w]).length);
   const out = data.players.map(p => {
     let run = 0;
-    const weekly = played.map(w => typeof data.weeks[w][p] === "number" ? data.weeks[w][p] : null);
-    const cum = weekly.map(v => (run += v || 0));
+    const lastIdx = played.length ? WEEKS.indexOf(played.at(-1)) : -1;
+    const weekly = WEEKS.map(w => typeof data.weeks[w]?.[p] === "number" ? data.weeks[w][p] : null);
+    const cum = weekly.map((v, i) => i <= lastIdx ? (run += v || 0) : null);
     const got = weekly.filter(v => v !== null);
     const wins = played.filter(w => { const v = Object.values(data.weeks[w]); return v.length > 1 && data.weeks[w][p] === Math.max(...v); }).length;
     return { p, weekly, cum, total: run, avg: got.length ? Math.round(run / got.length) : 0, best: got.length ? Math.max(...got) : 0, wins };
   });
-  return { played, labels: played.map(w => "Wk " + (WEEKS.indexOf(w) + 1)), out };
+  return { played, labels: WEEKS.map((w, i) => "Wk " + (i + 1)), out };
 }
 
 function renderStandings(s){
@@ -131,6 +136,7 @@ function renderCharts(s){
   if (cumChart) cumChart.destroy();
   if (weekChart) weekChart.destroy();
   const cumOpts = chartOpts();
+  cumOpts.scales.y.suggestedMax = MAX;
   cumOpts.layout = { padding: { top: R + 2, bottom: R, right: 2 * R + 14 } };
   cumChart = new Chart($("cumChart"), { type: "line", data: { labels: s.labels, datasets: ds("cum").map(d => ({ ...d, pointRadius: 0, pointHoverRadius: 4 })) }, options: cumOpts, plugins: [endIcons] });
   weekChart = new Chart($("weekChart"), { type: "line", data: { labels: s.labels, datasets: ds("weekly") }, options: chartOpts(MAX) });
@@ -152,7 +158,9 @@ const endIcons = {
   afterDatasetsDraw(chart){
     const ctx = chart.ctx, area = chart.chartArea;
     const items = chart.data.datasets.map((ds, i) => {
-      const meta = chart.getDatasetMeta(i), pt = meta.data[meta.data.length - 1];
+      const meta = chart.getDatasetMeta(i);
+      let li = ds.data.length - 1; while (li >= 0 && ds.data[li] == null) li--;
+      const pt = li >= 0 ? meta.data[li] : null;
       return (meta.hidden || !pt) ? null : { ds, px: pt.x, py: pt.y, y: pt.y };
     }).filter(Boolean).sort((a, b) => a.py - b.py);
     if (!items.length) return;
@@ -190,7 +198,7 @@ function render(){ const s = series(); renderStandings(s); renderCharts(s); }
 matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", render);
 fetch("scores.json?v=" + Date.now())
   .then(r => r.json())
-  .then(d => { data = { players: d.players || [], weeks: d.weeks || {}, avatars: d.avatars || {}, updated: d.updated || null }; loadImages(); render(); })
+  .then(d => { data = { players: d.players || [], weeks: d.weeks || {}, avatars: d.avatars || {}, updated: d.updated || null }; $("sample").hidden = !d.sample; loadImages(); render(); })
   .catch(() => { $("standings").innerHTML = '<p class="empty">Couldn\'t load scores. Refresh to try again.</p>'; });
 </script>
 </body>
