@@ -57,7 +57,7 @@ tr:last-child td{border-bottom:0}
   </section>
   <section class="panel">
     <h2>Cumulative total</h2>
-    <div class="chart-box"><canvas id="cumChart" aria-label="Cumulative total per player"></canvas></div>
+    <div class="chart-box" style="height:400px"><canvas id="cumChart" aria-label="Cumulative total per player"></canvas></div>
   </section>
   <section class="panel">
     <h2>Weekly scores</h2>
@@ -130,16 +130,67 @@ function renderCharts(s){
   const ds = key => s.out.map(r => ({ label: r.p, data: r[key], borderColor: colorFor(r.p), backgroundColor: colorFor(r.p), tension: .25, pointRadius: 3, borderWidth: 2, spanGaps: false }));
   if (cumChart) cumChart.destroy();
   if (weekChart) weekChart.destroy();
-  cumChart = new Chart($("cumChart"), { type: "line", data: { labels: s.labels, datasets: ds("cum") }, options: chartOpts() });
+  const cumOpts = chartOpts();
+  cumOpts.layout = { padding: { top: R + 2, bottom: R, right: 2 * R + 14 } };
+  cumChart = new Chart($("cumChart"), { type: "line", data: { labels: s.labels, datasets: ds("cum").map(d => ({ ...d, pointRadius: 0, pointHoverRadius: 4 })) }, options: cumOpts, plugins: [endIcons] });
   weekChart = new Chart($("weekChart"), { type: "line", data: { labels: s.labels, datasets: ds("weekly") }, options: chartOpts(MAX) });
 }
+
+
+const imgs = {};
+function loadImages(){
+  Object.entries(data.avatars || {}).forEach(([p, src]) => {
+    const im = new Image();
+    im.onload = () => cumChart && cumChart.draw();
+    im.src = src;
+    imgs[p] = im;
+  });
+}
+const R = 11;
+const endIcons = {
+  id: "endIcons",
+  afterDatasetsDraw(chart){
+    const ctx = chart.ctx, area = chart.chartArea;
+    const items = chart.data.datasets.map((ds, i) => {
+      const meta = chart.getDatasetMeta(i), pt = meta.data[meta.data.length - 1];
+      return (meta.hidden || !pt) ? null : { ds, px: pt.x, py: pt.y, y: pt.y };
+    }).filter(Boolean).sort((a, b) => a.py - b.py);
+    if (!items.length) return;
+    // spread icons so they don't overlap, keeping them inside the chart
+    const top = area.top, bottom = area.bottom;
+    const gap = Math.min(2 * R + 2, items.length > 1 ? (bottom - top) / (items.length - 1) : 0);
+    items[0].y = Math.max(items[0].y, top);
+    for (let k = 1; k < items.length; k++) items[k].y = Math.max(items[k].y, items[k - 1].y + gap);
+    const over = items.at(-1).y - bottom;
+    if (over > 0) items.forEach(it => it.y -= over);
+    for (let k = items.length - 2; k >= 0; k--) items[k].y = Math.min(items[k].y, items[k + 1].y - gap);
+    const x = items[0].px + R + 10;
+    items.forEach(({ ds, px, py, y }) => {
+      const im = imgs[ds.label];
+      ctx.save();
+      ctx.strokeStyle = ds.borderColor; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(x - R, y); ctx.stroke();
+      ctx.beginPath(); ctx.arc(x, y, R, 0, Math.PI * 2); ctx.closePath();
+      ctx.fillStyle = css("--surface"); ctx.fill();
+      if (im && im.complete && im.naturalWidth){
+        ctx.save(); ctx.clip(); ctx.drawImage(im, x - R, y - R, R * 2, R * 2); ctx.restore();
+      } else {
+        ctx.fillStyle = css("--ink"); ctx.font = "600 9px " + css("--body");
+        ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(initials(ds.label), x, y);
+      }
+      ctx.lineWidth = 2; ctx.strokeStyle = ds.borderColor;
+      ctx.beginPath(); ctx.arc(x, y, R, 0, Math.PI * 2); ctx.stroke();
+      ctx.restore();
+    });
+  }
+};
 
 function render(){ const s = series(); renderStandings(s); renderCharts(s); }
 
 matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", render);
 fetch("scores.json?v=" + Date.now())
   .then(r => r.json())
-  .then(d => { data = { players: d.players || [], weeks: d.weeks || {}, avatars: d.avatars || {}, updated: d.updated || null }; render(); })
+  .then(d => { data = { players: d.players || [], weeks: d.weeks || {}, avatars: d.avatars || {}, updated: d.updated || null }; loadImages(); render(); })
   .catch(() => { $("standings").innerHTML = '<p class="empty">Couldn\'t load scores. Refresh to try again.</p>'; });
 </script>
 </body>
