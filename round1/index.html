@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>TimeGuessr Cup · Round 1</title>
+<title>TimeGuessr Cup · Warm-up</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
@@ -82,18 +82,19 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 <div class="wrap">
   <header>
     <div>
-      <h1 id="title">TimeGuessr Cup · Round 1</h1>
+      <h1 id="title">TimeGuessr Cup · Warm-up</h1>
       <div class="back"><a href="../">Back to the leaderboard</a></div>
     </div>
     <div class="pill" id="status" hidden><span>Photo <b id="roundNo">1</b>/<b id="roundTotal">5</b></span><span>Score <b id="runTotal">0</b></span></div>
   </header>
 
   <section class="panel intro" id="introView">
-    <h2>Special round</h2>
+    <h2>Warm-up round</h2>
     <p id="introText">Five photos. For each one, drop a pin where it was taken and pick the year.</p>
     <ul>
       <li>Up to 5,000 points for location and 5,000 for the year, per photo.</li>
       <li>50,000 is a perfect game.</li>
+      <li id="yearRule" hidden></li>
       <li>One attempt. Your result is saved on this device.</li>
     </ul>
     <div><button id="startBtn" disabled>Loading…</button></div>
@@ -168,6 +169,7 @@ function locPoints(km){
   return 12;
 }
 function yearPoints(diff){
+  if (Array.isArray(game.yearTable)) return game.yearTable[diff] ?? 0;
   if (diff === 0) return 5000;
   if (diff === 1) return 4950;
   if (diff === 2) return 4800;
@@ -283,6 +285,7 @@ fetch("game.json?v=" + Date.now()).then(r => r.json()).then(g => {
   game = Object.assign({ yearMin: 1990, yearMax: 2026, yearStart: 2010, mapCenter: [53.4, -7.9], mapZoom: 6 }, g);
   if (game.title) { $("title").textContent = game.title; document.title = game.title; }
   if (game.intro) $("introText").textContent = game.intro;
+  if (game.yearRule) { $("yearRule").textContent = game.yearRule; $("yearRule").hidden = false; }
   $("roundTotal").textContent = game.rounds.length;
   $("yearInput").min = game.yearMin; $("yearInput").max = game.yearMax;
   game.rounds.forEach(r => { const im = new Image(); im.src = r.image; }); // preload

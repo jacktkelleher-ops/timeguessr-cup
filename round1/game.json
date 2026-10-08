@@ -1,6 +1,7 @@
 {
- "title": "TimeGuessr Cup \u00b7 Round 1",
+ "title": "TimeGuessr Cup \u00b7 Warm-up",
  "intro": "Five photos from the archives. For each one, drop a pin where it was taken and pick the year.",
+ "yearRule": "Year scoring is strict: 1 year off scores 3,500, 2 off 2,000, 3 off 1,000, 4 off 500, and 5 or more scores nothing.",
  "yearMin": 1995,
  "yearMax": 2026,
  "yearStart": 2012,
@@ -9,6 +10,13 @@
   5
  ],
  "mapZoom": 4,
+ "yearTable": [
+  5000,
+  3500,
+  2000,
+  1000,
+  500
+ ],
  "rounds": [
   {
    "image": "photos/1.jpg",
