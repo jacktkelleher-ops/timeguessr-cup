@@ -1,0 +1,34 @@
+{
+ "title": "TimeGuessr Cup \u00b7 Round 1",
+ "intro": "Five photos from the archives. For each one, drop a pin where it was taken and pick the year.",
+ "yearMin": 1995,
+ "yearMax": 2026,
+ "yearStart": 2012,
+ "mapCenter": [
+  50,
+  5
+ ],
+ "mapZoom": 4,
+ "rounds": [
+  {
+   "image": "photos/1.jpg",
+   "a": "==QfiMXavFGTg4ybDBCL5xGbhJGZhJHdTJCI6IibvlGdwF2YiACL3EDMyAiOiIXYllnIgwCN0QDN0YTMucTLgojIu9GbiACLzMzM4UDMw4yM1AiOiQXYsJye"
+  },
+  {
+   "image": "photos/2.jpg",
+   "a": "==QfiknchJXZwBXaUBiLvNEIsMXZsJXdoRlIgojIu9Wa0BXYjJCIscTMwIDI6IichVWeiACL3EDNwgjL30CI6IibvxmIgwCOyADO24iM1AiOiQXYsJye"
+  },
+  {
+   "image": "photos/3.jpg",
+   "a": "==QfiMWasJWdwVmUgg2Ylp3QgwSZ1dWYyBlIgojIu9Wa0BXYjJCIskTMwIDI6IichVWeiACLxYzMyQjL0EDI6IibvxmIgwiMycDOw4CM1AiOiQXYsJye"
+  },
+  {
+   "image": "photos/4.jpg",
+   "a": "=0nI5JncltEIu82QgwSYsV3culmblBFIlx2ZulGRgwSZs92buVWZtV3bDJCI6IibvlGdwF2YiACL4EDMyAiOiIXYllnIgwSN2QjLwETLgojIu9GbiACL0QDN0kDMx4iM1AiOiQXYsJye"
+  },
+  {
+   "image": "photos/5.jpg",
+   "a": "9JSZjVWZydEIsM3bJJCI6IibvlGdwF2YiACL1EDMyAiOiIXYllnIgwCN4YjMwEzMuUjMgojIu9GbiACLzgDN1MDO34iNzAiOiQXYsJye"
+  }
+ ]
+}
