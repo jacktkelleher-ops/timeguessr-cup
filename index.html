@@ -132,7 +132,9 @@ function chartOpts(yMax){
 
 function renderCharts(s){
   if (!window.Chart) return;
-  const ds = key => s.out.map(r => ({ label: r.p, data: r[key], borderColor: colorFor(r.p), backgroundColor: colorFor(r.p), tension: .25, pointRadius: 3, borderWidth: 2, spanGaps: false }));
+  // players appear on the charts once they have at least one score
+  const shown = s.out.filter(r => r.weekly.some(v => v != null));
+  const ds = key => shown.map(r => ({ label: r.p, data: r[key], borderColor: colorFor(r.p), backgroundColor: colorFor(r.p), tension: .25, pointRadius: 3, borderWidth: 2, spanGaps: false }));
   if (cumChart) cumChart.destroy();
   if (weekChart) weekChart.destroy();
   const cumOpts = chartOpts();
@@ -169,11 +171,9 @@ const endIcons = {
     // spread icons so they don't overlap, keeping them inside the chart
     const top = area.top, bottom = area.bottom;
     const gap = Math.min(2 * R + 2, items.length > 1 ? (bottom - top) / (items.length - 1) : 0);
-    items[0].y = Math.max(items[0].y, top);
-    for (let k = 1; k < items.length; k++) items[k].y = Math.max(items[k].y, items[k - 1].y + gap);
-    const over = items.at(-1).y - bottom;
-    if (over > 0) items.forEach(it => it.y -= over);
-    for (let k = items.length - 2; k >= 0; k--) items[k].y = Math.min(items[k].y, items[k + 1].y - gap);
+    const down = () => { items[0].y = Math.max(items[0].y, top); for (let k = 1; k < items.length; k++) items[k].y = Math.max(items[k].y, items[k - 1].y + gap); };
+    const up = () => { const n = items.length - 1; items[n].y = Math.min(items[n].y, bottom); for (let k = n - 1; k >= 0; k--) items[k].y = Math.min(items[k].y, items[k + 1].y - gap); };
+    down(); up(); down(); // ends inside [top, bottom] because the total spacing fits the chart height
     const x = items[0].px + R + 10;
     items.forEach(({ ds, px, py, y }) => {
       const im = imgs[ds.label];
