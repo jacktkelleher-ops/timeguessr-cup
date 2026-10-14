@@ -1,5 +1,5 @@
 {
-  "updated": null,
+  "updated": "2026-10-14T15:00:56+01:00",
   "players": [
     "Aaron Daly",
     "Alan Mccarthy",
@@ -28,5 +28,12 @@
     "Luke Merriman": "avatars/Luke_Merriman.jpg",
     "Paul Tobin": "avatars/Paul_Tobin.jpg"
   },
-  "weeks": {}
+  "weeks": {
+    "2026-10-14": {
+      "Jack Kelleher": 40434,
+      "Aaron Daly": 45779,
+      "Alan Mccarthy": 42372,
+      "Cormac": 44461
+    }
+  }
 }
