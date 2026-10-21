@@ -142,6 +142,7 @@ function renderCharts(s){
   const cumOpts = chartOpts();
   cumOpts.scales.y.suggestedMax = MAX;
   cumOpts.layout = { padding: { top: R + 2, bottom: R, right: 2 * R + 14 } };
+  cumOpts.plugins.endIcons = { dotted: true };
   cumChart = new Chart($("cumChart"), { type: "line", data: { labels: s.labels, datasets: ds("cum").map(d => ({ ...d, pointRadius: 0, pointHoverRadius: 4 })) }, options: cumOpts, plugins: [endIcons] });
   const weekOpts = chartOpts(MAX);
   weekOpts.layout = { padding: { top: R + 2, bottom: R, right: 2 * R + 14 } };
@@ -161,7 +162,7 @@ function loadImages(){
 const R = 11;
 const endIcons = {
   id: "endIcons",
-  afterDatasetsDraw(chart){
+  afterDatasetsDraw(chart, args, opts){
     const ctx = chart.ctx, area = chart.chartArea;
     const items = chart.data.datasets.map((ds, i) => {
       const meta = chart.getDatasetMeta(i);
@@ -181,7 +182,9 @@ const endIcons = {
       const im = imgs[ds.label];
       ctx.save();
       ctx.strokeStyle = ds.borderColor; ctx.lineWidth = 1.5;
+      if (opts && opts.dotted) { ctx.setLineDash([2, 3]); ctx.lineCap = "round"; }
       ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(x - R, y); ctx.stroke();
+      ctx.setLineDash([]);
       ctx.beginPath(); ctx.arc(x, y, R, 0, Math.PI * 2); ctx.closePath();
       ctx.fillStyle = css("--surface"); ctx.fill();
       if (im && im.complete && im.naturalWidth){
