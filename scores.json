@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-18T08:45:39+01:00",
+  "updated": "2026-10-21T10:39:26+01:00",
   "players": [
     "Aaron Daly",
     "Alan Mccarthy",
@@ -41,6 +41,9 @@
       "Jack Carrigy": 26896,
       "Jack Keane": 38635,
       "Luke Merriman": 38824
+    },
+    "2026-10-21": {
+      "Paul Tobin": 33804
     }
   }
 }
