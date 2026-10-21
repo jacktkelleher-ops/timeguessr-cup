@@ -42,10 +42,12 @@ tr:last-child td{border-bottom:0}
 .grid th{font-size:12px;text-align:center}
 .grid .name{position:sticky;left:0;background:var(--surface);z-index:1;padding-left:6px;font-size:14px}
 .grid .name .av{width:26px;height:26px}
-.grid td.cell{font:500 12.5px var(--mono);text-align:center;border-radius:6px;min-width:50px;padding:6px 5px;color:var(--ink)}
+.grid td.cell{font:500 12px var(--mono);text-align:center;border-radius:6px;min-width:46px;padding:6px 4px;color:var(--ink)}
 .grid td.cell.none{color:var(--muted);background:transparent}
 .grid td.cell.top{box-shadow:inset 0 0 0 2px var(--gold);font-weight:700}
 .grid-key{font-size:12px;color:var(--muted);margin:10px 0 0}
+.namecell{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.spark{flex:none;display:block;overflow:visible}
 .av{width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid;flex:none}
 .av-init{display:inline-grid;place-items:center;font:600 12px var(--body);background:var(--bg);color:var(--ink)}
 .pos{font:800 18px var(--display);width:2.2em}
@@ -213,6 +215,26 @@ function renderGrid(s){
     .map(c => ({ ...c, max: Math.max(...c.vals), min: Math.min(...c.vals) }));
   const rows = [...s.out].filter(r => r.weekly.some(v => v != null))
     .sort((a, b) => b.total - a.total || a.p.localeCompare(b.p));
+  // sparkline: one shared scale for everyone so trends compare fairly
+  const all = cols.flatMap(c => c.vals), lo = Math.min(...all), hi = Math.max(...all);
+  const SW = 56, SH = 22, P = 3;
+  const spark = r => {
+    const pts = cols.map((c, i) => {
+      const v = data.weeks[c.w][r.p];
+      if (typeof v !== "number") return null;
+      const x = cols.length === 1 ? SW / 2 : P + i * (SW - 2 * P) / (cols.length - 1);
+      const y = hi === lo ? SH / 2 : SH - P - (v - lo) / (hi - lo) * (SH - 2 * P);
+      return [x.toFixed(1), y.toFixed(1)];
+    });
+    let path = "", pen = false;
+    pts.forEach(pt => { if (!pt) { pen = false; return; } path += (pen ? "L" : "M") + pt[0] + " " + pt[1]; pen = true; });
+    const col = colorFor(r.p), last = [...pts].reverse().find(Boolean);
+    const dots = pts.filter(Boolean).map(pt => `<circle cx="${pt[0]}" cy="${pt[1]}" r="1.4" fill="${col}"/>`).join("");
+    return `<svg class="spark" width="${SW}" height="${SH}" viewBox="0 0 ${SW} ${SH}" aria-hidden="true">
+      <line x1="0" x2="${SW}" y1="${SH - 0.5}" y2="${SH - 0.5}" stroke="var(--line)" stroke-width="1"/>
+      ${path ? `<path d="${path}" fill="none" stroke="${col}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>` : ""}
+      ${dots}${last ? `<circle cx="${last[0]}" cy="${last[1]}" r="2.6" fill="${col}"/>` : ""}</svg>`;
+  };
   const cell = (r, c) => {
     const v = data.weeks[c.w][r.p];
     if (typeof v !== "number") return '<td class="cell none">–</td>';
@@ -223,7 +245,7 @@ function renderGrid(s){
   };
   $("grid").innerHTML = `<div class="grid-wrap"><table class="grid">
     <thead><tr><th class="name"></th>${cols.map(c => `<th>Wk ${c.n}</th>`).join("")}</tr></thead>
-    <tbody>${rows.map(r => `<tr><td class="name"><span class="who">${avatar(r.p)}${esc(r.p.split(" ")[0] === "Jack" ? r.p : r.p.split(" ")[0])}</span></td>${cols.map(c => cell(r, c)).join("")}</tr>`).join("")}</tbody>
+    <tbody>${rows.map(r => `<tr><td class="name"><div class="namecell"><span class="who">${avatar(r.p)}${esc(r.p.split(" ")[0] === "Jack" ? r.p : r.p.split(" ")[0])}</span>${spark(r)}</div></td>${cols.map(c => cell(r, c)).join("")}</tr>`).join("")}</tbody>
   </table></div>`;
   const wrap = $("grid").querySelector(".grid-wrap");
   if (wrap) wrap.scrollLeft = wrap.scrollWidth; // show the latest week first on narrow screens
