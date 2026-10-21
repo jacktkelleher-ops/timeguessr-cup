@@ -36,6 +36,16 @@ th{font-weight:500;color:var(--muted);font-size:13px}
 td.num,th.num{text-align:right;font-family:var(--mono)}
 tr:last-child td{border-bottom:0}
 .who{display:inline-flex;align-items:center;gap:10px}
+.grid-wrap{overflow-x:auto;margin-inline:-6px}
+.grid{border-collapse:separate;border-spacing:3px;width:auto;min-width:100%}
+.grid th,.grid td{border:0;padding:6px 8px;white-space:nowrap}
+.grid th{font-size:12px;text-align:center}
+.grid .name{position:sticky;left:0;background:var(--surface);z-index:1;padding-left:6px;font-size:14px}
+.grid .name .av{width:26px;height:26px}
+.grid td.cell{font:500 12.5px var(--mono);text-align:center;border-radius:6px;min-width:50px;padding:6px 5px;color:var(--ink)}
+.grid td.cell.none{color:var(--muted);background:transparent}
+.grid td.cell.top{box-shadow:inset 0 0 0 2px var(--gold);font-weight:700}
+.grid-key{font-size:12px;color:var(--muted);margin:10px 0 0}
 .av{width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid;flex:none}
 .av-init{display:inline-grid;place-items:center;font:600 12px var(--body);background:var(--bg);color:var(--ink)}
 .pos{font:800 18px var(--display);width:2.2em}
@@ -66,7 +76,8 @@ tr:last-child td{border-bottom:0}
   </section>
   <section class="panel">
     <h2>Weekly scores</h2>
-    <div class="chart-box" style="height:400px"><canvas id="weekChart" aria-label="Weekly score per player"></canvas></div>
+    <div id="grid"><p class="empty">No scores yet.</p></div>
+    <p class="grid-key">Darker means a better score that week. ★ marks the week's top score.</p>
   </section>
   <p class="updated" id="updated"></p>
 </div>
@@ -78,7 +89,7 @@ const MAX = 50000;
 const WEEKS = ["2026-10-14","2026-10-21","2026-10-28","2026-11-04","2026-11-11","2026-11-18","2026-11-25","2026-12-02","2026-12-09","2026-12-16"];
 const PALETTE = ["#1d6a86","#c2552d","#4c8a3a","#8a4fb0","#b7861b","#2f8f8a","#a13d63","#5b6770","#d07a1f","#3b5bb5","#7a9a2a","#c03a3a"];
 let data = { players: [], weeks: {}, avatars: {}, updated: null };
-let cumChart, weekChart;
+let cumChart;
 
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString("en-IE");
@@ -138,15 +149,11 @@ function renderCharts(s){
   const shown = s.out.filter(r => r.weekly.some(v => v != null));
   const ds = key => shown.map(r => ({ label: r.p, data: r[key], borderColor: colorFor(r.p), backgroundColor: colorFor(r.p), tension: .25, pointRadius: 3, borderWidth: 2, spanGaps: false }));
   if (cumChart) cumChart.destroy();
-  if (weekChart) weekChart.destroy();
   const cumOpts = chartOpts();
   cumOpts.scales.y.suggestedMax = MAX;
   cumOpts.layout = { padding: { top: R + 2, bottom: R, right: 2 * R + 14 } };
   cumOpts.plugins.endIcons = { dotted: true };
   cumChart = new Chart($("cumChart"), { type: "line", data: { labels: s.labels, datasets: ds("cum").map(d => ({ ...d, pointRadius: 0, pointHoverRadius: 4 })) }, options: cumOpts, plugins: [endIcons] });
-  const weekOpts = chartOpts(MAX);
-  weekOpts.layout = { padding: { top: R + 2, bottom: R, right: 2 * R + 14 } };
-  weekChart = new Chart($("weekChart"), { type: "line", data: { labels: s.labels, datasets: ds("weekly") }, options: weekOpts, plugins: [endIcons] });
 }
 
 
@@ -154,7 +161,7 @@ const imgs = {};
 function loadImages(){
   Object.entries(data.avatars || {}).forEach(([p, src]) => {
     const im = new Image();
-    im.onload = () => { cumChart && cumChart.draw(); weekChart && weekChart.draw(); };
+    im.onload = () => { cumChart && cumChart.draw(); };
     im.src = src;
     imgs[p] = im;
   });
@@ -200,7 +207,29 @@ const endIcons = {
   }
 };
 
-function render(){ const s = series(); renderStandings(s); renderCharts(s); }
+function renderGrid(s){
+  if (!s.played.length){ $("grid").innerHTML = '<p class="empty">No scores yet.</p>'; return; }
+  const cols = s.played.map(w => ({ w, n: WEEKS.indexOf(w) + 1, vals: Object.values(data.weeks[w]) }))
+    .map(c => ({ ...c, max: Math.max(...c.vals), min: Math.min(...c.vals) }));
+  const rows = [...s.out].filter(r => r.weekly.some(v => v != null))
+    .sort((a, b) => b.total - a.total || a.p.localeCompare(b.p));
+  const cell = (r, c) => {
+    const v = data.weeks[c.w][r.p];
+    if (typeof v !== "number") return '<td class="cell none">–</td>';
+    const t = c.max === c.min ? 1 : (v - c.min) / (c.max - c.min);
+    const pct = Math.round(10 + t * 45);
+    const top = v === c.max && c.vals.length > 1;
+    return `<td class="cell${top ? " top" : ""}" style="background:color-mix(in srgb, var(--accent) ${pct}%, transparent)" title="${esc(r.p)}, week ${c.n}: ${fmt(v)}">${top ? "★ " : ""}${(v / 1000).toFixed(1)}k</td>`;
+  };
+  $("grid").innerHTML = `<div class="grid-wrap"><table class="grid">
+    <thead><tr><th class="name"></th>${cols.map(c => `<th>Wk ${c.n}</th>`).join("")}</tr></thead>
+    <tbody>${rows.map(r => `<tr><td class="name"><span class="who">${avatar(r.p)}${esc(r.p.split(" ")[0] === "Jack" ? r.p : r.p.split(" ")[0])}</span></td>${cols.map(c => cell(r, c)).join("")}</tr>`).join("")}</tbody>
+  </table></div>`;
+  const wrap = $("grid").querySelector(".grid-wrap");
+  if (wrap) wrap.scrollLeft = wrap.scrollWidth; // show the latest week first on narrow screens
+}
+
+function render(){ const s = series(); renderStandings(s); renderCharts(s); renderGrid(s); }
 
 matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", render);
 fetch("scores.json?v=" + Date.now())
