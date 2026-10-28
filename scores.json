@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-28T13:18:42+00:00",
+  "updated": "2026-10-28T14:00:18+00:00",
   "players": [
     "Aaron Daly",
     "Alan Mccarthy",
@@ -54,6 +54,9 @@
       "Darragh O'Connor": 37267,
       "Cormac": 35755,
       "Jack Keane": 39316
+    },
+    "2026-10-28": {
+      "Alan Mccarthy": 35859
     }
   }
 }
