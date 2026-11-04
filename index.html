@@ -40,7 +40,9 @@ tr:last-child td{border-bottom:0}
 .grid{border-collapse:separate;border-spacing:3px;width:auto;min-width:100%}
 .grid th,.grid td{border:0;padding:6px 8px;white-space:nowrap}
 .grid th{font-size:12px;text-align:center}
-.grid .name{position:sticky;left:0;background:var(--surface);z-index:1;padding-left:6px;font-size:14px}
+.grid .name{position:sticky;left:0;background:var(--surface);z-index:1;padding-left:6px;font-size:14px;box-shadow:4px 0 0 var(--surface)}
+.grid .tot{position:sticky;background:var(--surface);z-index:1;text-align:right;font:700 13px var(--mono);color:var(--ink);padding-right:10px;border-right:1px solid var(--line);box-shadow:4px 0 0 var(--surface)}
+.grid th.tot{font:500 12px var(--body);color:var(--muted)}
 .grid .name .av{width:26px;height:26px}
 .grid td.cell{font:500 12px var(--mono);text-align:center;border-radius:6px;min-width:46px;padding:6px 4px;color:var(--ink)}
 .grid td.cell.none{color:var(--muted);background:transparent}
@@ -244,10 +246,13 @@ function renderGrid(s){
     return `<td class="cell${top ? " top" : ""}" style="background:color-mix(in srgb, var(--accent) ${pct}%, transparent)" title="${esc(r.p)}, week ${c.n}: ${fmt(v)}">${top ? "★ " : ""}${(v / 1000).toFixed(1)}k</td>`;
   };
   $("grid").innerHTML = `<div class="grid-wrap"><table class="grid">
-    <thead><tr><th class="name"></th>${cols.map(c => `<th>Wk ${c.n}</th>`).join("")}</tr></thead>
-    <tbody>${rows.map(r => `<tr><td class="name"><div class="namecell"><span class="who">${avatar(r.p)}${esc(r.p.split(" ")[0] === "Jack" ? r.p : r.p.split(" ")[0])}</span>${spark(r)}</div></td>${cols.map(c => cell(r, c)).join("")}</tr>`).join("")}</tbody>
+    <thead><tr><th class="name"></th><th class="tot">Total</th>${cols.map(c => `<th>Wk ${c.n}</th>`).join("")}</tr></thead>
+    <tbody>${rows.map(r => `<tr><td class="name"><div class="namecell"><span class="who">${avatar(r.p)}${esc(r.p.split(" ")[0] === "Jack" ? r.p : r.p.split(" ")[0])}</span>${spark(r)}</div></td><td class="tot" title="${esc(r.p)}: ${fmt(r.total)} total">${(r.total / 1000).toFixed(1)}k</td>${cols.map(c => cell(r, c)).join("")}</tr>`).join("")}</tbody>
   </table></div>`;
   const wrap = $("grid").querySelector(".grid-wrap");
+  // pin the Total column right after the name column
+  const nameW = $("grid").querySelector("td.name")?.getBoundingClientRect().width || 0;
+  $("grid").querySelectorAll(".tot").forEach(el => el.style.left = (nameW + 3) + "px");
   if (wrap) wrap.scrollLeft = wrap.scrollWidth; // show the latest week first on narrow screens
 }
 
