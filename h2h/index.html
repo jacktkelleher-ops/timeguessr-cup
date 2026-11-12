@@ -124,7 +124,7 @@ function render(){
 const $ = id => document.getElementById(id);
 const opts = names.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join("");
 $("pa").innerHTML = opts; $("pb").innerHTML = opts;
-$("pa").value = "Aaron Daly"; $("pb").value = "Jack Kelleher";
+$("pa").value = "Aaron Daly"; $("pb").value = "Paul Tobin";
 $("pa").addEventListener("change", render); $("pb").addEventListener("change", render);
 render();
 </script>
