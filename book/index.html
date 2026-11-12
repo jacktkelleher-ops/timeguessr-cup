@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TimeGuessr Cup · Outright Odds</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+:root{
+  --bg:#eef2f4; --surface:#ffffff; --ink:#15212b; --muted:#5d6b76; --line:#d5dde2;
+  --accent:#1d6a86; --gold:#b7861b;
+  --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --body:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#0f161c; --surface:#17222b; --ink:#e6edf1; --muted:#93a3ae; --line:#2a3944;
+  --accent:#5fb3d1; --gold:#e0b04a; color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--body)}
+.wrap{max-width:720px;margin:0 auto;padding-inline:16px;padding-block:24px 48px;display:grid;gap:18px}
+.wrap > *{min-width:0}
+.back{font-size:14px;color:var(--accent);text-decoration:none}
+.back:hover,.back:focus-visible{text-decoration:underline}
+h1{font:800 clamp(28px,6vw,40px)/1.05 var(--display);letter-spacing:-.02em;margin:6px 0 0}
+.sub{color:var(--muted);margin:6px 0 0}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 0}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{padding:10px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{padding-left:14px;white-space:normal}
+th:last-child,td:last-child{padding-right:14px}
+tr:last-child td{border-bottom:0}
+th{font:500 12px var(--body);color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+th.num,td.num{text-align:right}
+.who{display:inline-flex;align-items:center;gap:10px;line-height:1.25}
+.av{width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid;flex:none}
+.price{display:inline-block;min-width:58px;text-align:center;font:600 15px var(--mono);padding:5px 10px;border-radius:6px;background:color-mix(in srgb, var(--accent) 14%, transparent);color:var(--ink)}
+.fav .price{background:color-mix(in srgb, var(--gold) 26%, transparent)}
+.dec{display:block;font:500 11px var(--mono);color:var(--muted);margin-top:2px;text-align:center}
+.stake{font:600 15px var(--mono)}
+.nr td{color:var(--muted)}
+.nr .price{background:transparent;border:1px dashed var(--line);color:var(--muted)}
+.tbl{overflow-x:auto}
+.notes{font-size:13px;color:var(--muted);margin:0;display:grid;gap:4px}
+.notes p{margin:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div>
+    <a class="back" href="../">← Back to the leaderboard</a>
+    <h1>Outright winner odds</h1>
+    <p class="sub">Prices after Week 5 of 10.</p>
+  </div>
+
+  <section class="panel">
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Player</th><th class="num">Odds</th><th class="num">Max stake</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="notes">
+    <p>Max stake is the most you can put on that player. Payouts at the max stake are capped at €50 profit, except the 80/1+ prices, which take a flat €0.50.</p>
+    <p>Odds come from 400,000 simulations of the remaining weeks, using this competition's scores plus Round 3 of the previous one. Book total 120.5%.</p>
+  </div>
+</div>
+
+<script>
+const PALETTE = ["#1d6a86","#c2552d","#4c8a3a","#8a4fb0","#b7861b","#2f8f8a","#a13d63","#5b6770","#d07a1f","#3b5bb5","#7a9a2a","#c03a3a"];
+const PLAYERS = ["Aaron Daly","Alan Mccarthy","Conor","Cormac","Darragh O'Connor","David Aherne","Daniel O Sullivan","Jack Carrigy","Jack Keane","Jack Kelleher","Luke Merriman","Paul Tobin"];
+const BOOK = [
+  { p: "Aaron Daly",        odds: "3/10",   stake: 166.66 },
+  { p: "Jack Kelleher",     odds: "6/4",    stake: 33.33 },
+  { p: "Conor",             odds: "80/1",   stake: 0.50 },
+  { p: "Luke Merriman",     odds: "150/1",  stake: 0.50 },
+  { p: "Cormac",            odds: "300/1",  stake: 0.50 },
+  { p: "Jack Keane",        odds: "300/1",  stake: 0.50 },
+  { p: "Alan Mccarthy",     odds: "400/1",  stake: 0.50 },
+  { p: "Darragh O'Connor",  odds: "500/1",  stake: 0.50 },
+  { p: "Paul Tobin",        odds: "500/1",  stake: 0.50 },
+  { p: "Daniel O Sullivan", odds: "500/1",  stake: 0.50 },
+  { p: "Jack Carrigy",      odds: "500/1",  stake: 0.50 },
+  { p: "David Aherne",      odds: "NR",     stake: null }
+];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const color = p => PALETTE[Math.max(0, PLAYERS.indexOf(p)) % PALETTE.length];
+const photo = p => "../avatars/" + p.replace(/'/g, "").replace(/ /g, "_") + ".jpg";
+const decimal = f => { const [a, b] = f.split("/").map(Number); return (1 + a / b).toFixed(2); };
+document.getElementById("rows").innerHTML = BOOK.map((r, i) => {
+  const nr = r.odds === "NR";
+  return `<tr class="${nr ? "nr" : i === 0 ? "fav" : ""}">
+    <td><span class="who"><img class="av" src="${photo(r.p)}" alt="" style="border-color:${color(r.p)}">${esc(r.p)}</span></td>
+    <td class="num"><span class="price">${nr ? "NR" : r.odds}</span>${nr ? '<span class="dec">Non-runner</span>' : `<span class="dec">${decimal(r.odds)}</span>`}</td>
+    <td class="num stake">${nr ? "–" : "€" + r.stake.toFixed(2)}</td>
+  </tr>`;
+}).join("");
+</script>
+</body>
+</html>
