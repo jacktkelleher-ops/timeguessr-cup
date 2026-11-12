@@ -88,7 +88,7 @@ th.num,td.num{text-align:right}
 const M = {"wsd":4433,"players":{"Aaron Daly":{"mu":40982,"se":1408},"Alan Mccarthy":{"mu":37222,"se":1408},"Conor":{"mu":38892,"se":1408},"Cormac":{"mu":38390,"se":1408},"Darragh O'Connor":{"mu":37915,"se":1408},"Daniel O Sullivan":{"mu":36576,"se":1408},"Jack Carrigy":{"mu":34658,"se":1484},"Jack Keane":{"mu":38140,"se":1408},"Jack Kelleher":{"mu":39929,"se":1408},"Luke Merriman":{"mu":37990,"se":1408},"Paul Tobin":{"mu":36836,"se":1408}}};
 const PALETTE = ["#1d6a86","#c2552d","#4c8a3a","#8a4fb0","#b7861b","#2f8f8a","#a13d63","#5b6770","#d07a1f","#3b5bb5","#7a9a2a","#c03a3a"];
 const ORDER = ["Aaron Daly","Alan Mccarthy","Conor","Cormac","Darragh O'Connor","David Aherne","Daniel O Sullivan","Jack Carrigy","Jack Keane","Jack Kelleher","Luke Merriman","Paul Tobin"];
-const MARGIN = 0.20, LIMIT = 20;
+const MARGIN = 0.13, LIMIT = 20; // 13% before rounding to standard prices gives ~15% books
 const LADDER = ["1/20","1/16","1/14","1/12","1/11","1/10","1/9","1/8","1/7","2/13","1/6","2/11","1/5","2/9","1/4","2/7","3/10","1/3","4/11","2/5","5/12","4/9","9/20","1/2","8/15","4/7","8/13","5/8","4/6","8/11","3/4","4/5","5/6","10/11","19/20","1/1","21/20","11/10","6/5","5/4","11/8","6/4","13/8","7/4","15/8","2/1","9/4","5/2","11/4","3/1","10/3","7/2","4/1","9/2","5/1"];
 const fracVal = f => { const [a, b] = f.split("/").map(Number); return a / b; };
 const names = Object.keys(M.players).sort((a, b) => a.localeCompare(b));
