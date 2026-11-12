@@ -28,7 +28,8 @@ h1{font:800 clamp(30px,6vw,44px)/1 var(--display);letter-spacing:-.02em;margin:0
 .sub{color:var(--muted);margin:6px 0 0}
 .count{font:500 13px var(--mono);color:var(--muted);text-align:right}
 .count b{display:block;font:800 28px/1 var(--display);color:var(--accent)}
-.oddsbar{display:flex;justify-content:flex-end}
+.oddsbar{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px}
+.oddsbtn.ghost{background:transparent;color:var(--ink);border:1px solid var(--gold);box-shadow:none}
 .oddsbtn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:8px;background:var(--gold);color:#1b1406;font:600 15px var(--body);text-decoration:none;box-shadow:0 1px 2px rgba(0,0,0,.12)}
 .oddsbtn:hover{filter:brightness(1.06)}
 .oddsbtn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
@@ -74,7 +75,7 @@ tr:last-child td{border-bottom:0}
     <div class="count" id="weekCount"><b>–</b>of 10 weeks played</div>
   </header>
   <p class="sample" id="sample" hidden>Test data: these are dummy scores, not real results.</p>
-  <div class="oddsbar"><a class="oddsbtn" href="book/">View outright odds <span aria-hidden="true">→</span></a></div>
+  <div class="oddsbar"><a class="oddsbtn ghost" href="h2h/">Head-to-heads <span aria-hidden="true">→</span></a><a class="oddsbtn" href="book/">View outright odds <span aria-hidden="true">→</span></a></div>
   <section class="panel">
     <h2>Standings</h2>
     <div id="standings"><p class="empty">Loading scores…</p></div>
