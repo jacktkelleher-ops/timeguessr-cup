@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-12T10:30:32+00:00",
+  "updated": "2026-11-18T20:38:30+00:00",
   "players": [
     "Aaron Daly",
     "Alan Mccarthy",
@@ -93,6 +93,16 @@
       "Conor": 41529,
       "Cormac": 35983,
       "Jack Carrigy": 38428
+    },
+    "2026-11-18": {
+      "Jack Keane": 36664,
+      "Alan Mccarthy": 37664,
+      "Darragh O'Connor": 44167,
+      "Cormac": 40174,
+      "Conor": 36777,
+      "Daniel O Sullivan": 35164,
+      "Paul Tobin": 37939,
+      "Aaron Daly": 38143
     }
   }
 }
