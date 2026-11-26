@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-26T11:06:49+00:00",
+  "updated": "2026-11-26T11:08:00+00:00",
   "players": [
     "Aaron Daly",
     "Alan Mccarthy",
@@ -107,7 +107,11 @@
       "Luke Merriman": 35387
     },
     "2026-11-25": {
-      "Jack Keane": 40973
+      "Jack Keane": 40973,
+      "Conor": 34023,
+      "Paul Tobin": 45011,
+      "Jack Kelleher": 37647,
+      "Aaron Daly": 43136
     }
   }
 }
